@@ -266,12 +266,14 @@ public class SortBasedShuffleWriter<K, V, C> extends ShuffleWriter<K, V> {
             giantBuffer,
             Platform.BYTE_ARRAY_OFFSET + 4,
             rowSize);
+        // c002_2: Giant Record 直接 push
         pushGiantRecord(partitionId, giantBuffer, serializedRecordSize);
       } else {
         boolean success =
             pusher.insertRecord(
                 row.getBaseObject(), row.getBaseOffset(), rowSize, partitionId, true);
         if (!success) {
+          // c002: 当数据无法插入 inMem buffer时，开始 push
           doPush();
           success =
               pusher.insertRecord(

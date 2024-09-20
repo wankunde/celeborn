@@ -239,6 +239,9 @@ public class SortBasedPusher extends MemoryConsumer {
           offSet = 0;
         }
       }
+      // c003: 1. Copy records 到 dataBuf, 并累计 offset
+      // 2. 当 offset > dataBuf, 添加一个 push task
+      // 3. partition 完毕，开始调用 ShuffleClientImpl.pushOrMergeData() compress and push data
       final long recordPointer = sortedRecords.packedRecordPointer.getRecordPointer();
       final Object recordPage = taskMemoryManager.getPage(recordPointer);
       final long recordOffsetInPage = taskMemoryManager.getOffsetInPage(recordPointer);

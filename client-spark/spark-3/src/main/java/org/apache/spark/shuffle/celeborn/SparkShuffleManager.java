@@ -247,6 +247,10 @@ public class SparkShuffleManager implements ShuffleManager {
         shuffleIdTracker.track(h.shuffleId(), shuffleId);
 
         ShuffleMode shuffleMode = celebornConf.shuffleWriterMode();
+        // c001: 动态 shuffleMode 选择，
+        // < 2000  ==> HashBasedShuffleWriter,
+        // >= 2000 ==> SortBasedShuffleWriter
+        // 当 mode = SORT 且 Enable Column Shuffle 时 选择 ColumnarHashBasedShuffleWriter
         if (celebornConf.dynamicWriteModeEnabled()) {
           int partitionCount = h.dependency().partitioner().numPartitions();
           if (partitionCount > celebornConf.dynamicWriteModePartitionNumThreshold()) {

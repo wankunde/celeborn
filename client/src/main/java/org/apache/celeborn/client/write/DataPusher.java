@@ -123,6 +123,7 @@ public class DataPusher {
                 ArrayList<PushTask> tasks = dataPushQueue.takePushTasks();
                 for (int i = 0; i < tasks.size(); i++) {
                   PushTask task = tasks.get(i);
+                  // c013: 这里启动 long running 线程，不断推送数据
                   pushData(task);
                   reclaimTask(task);
                 }
@@ -142,6 +143,7 @@ public class DataPusher {
     pushThread.start();
   }
 
+  // c012:从 idleQueue 获取 task 对象，将 data buffer 放入 task 中， 然后放入 dataPushQueue 中
   public void addTask(int partitionId, byte[] buffer, int size)
       throws IOException, InterruptedException {
     try {

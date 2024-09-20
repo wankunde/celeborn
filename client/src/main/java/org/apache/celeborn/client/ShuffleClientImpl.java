@@ -926,6 +926,7 @@ public class ShuffleClientImpl extends ShuffleClient {
       return 0;
     }
 
+    // c005: 这里 PartitionLocation 有 PRIMARY 和 REPLICA 两类，我们这里应该只选择了一个？？
     final PartitionLocation loc = map.get(partitionId);
     if (loc == null) {
       throw new CelebornIOException(
@@ -938,6 +939,7 @@ public class ShuffleClientImpl extends ShuffleClient {
     // increment batchId
     final int nextBatchId = pushState.nextBatchId();
 
+    // c006: compress data
     if (shuffleCompressionEnabled) {
       // compress data
       final Compressor compressor = compressorThreadLocal.get();
@@ -948,6 +950,9 @@ public class ShuffleClientImpl extends ShuffleClient {
       length = compressor.getCompressedTotalSize();
     }
 
+    // c007: TODO 这里使用 nextBatchId ，一个 <mapId, reduceId> 可能会推送多个 Batch 数据
+    // 如何保重有序？
+    // 如何保证不丢数据? 少一个 batch
     final byte[] body = new byte[BATCH_HEADER_SIZE + length];
     Platform.putInt(body, Platform.BYTE_ARRAY_OFFSET, mapId);
     Platform.putInt(body, Platform.BYTE_ARRAY_OFFSET + 4, attemptId);
@@ -1002,6 +1007,7 @@ public class ShuffleClientImpl extends ShuffleClient {
             int remainReviveTimes = maxReviveTimes;
             PartitionLocation latest = loc;
 
+            // c008: TODO 可以切换 location？需要Master 来协调？如何保重不丢数据？
             @Override
             public void updateLatestPartition(PartitionLocation newloc) {
               pushState.addBatch(nextBatchId, newloc.hostAndPushPort());
@@ -1146,6 +1152,7 @@ public class ShuffleClientImpl extends ShuffleClient {
                 long dueTime =
                     System.currentTimeMillis()
                         + conf.clientRpcRequestPartitionLocationAskTimeout().duration().toMillis();
+                // c009 async retry push data
                 pushDataRetryPool.submit(
                     () ->
                         submitRetryPushData(
@@ -1179,6 +1186,7 @@ public class ShuffleClientImpl extends ShuffleClient {
             assert dataClientFactory != null;
             TransportClient client =
                 dataClientFactory.createClient(loc.getHost(), loc.getPushPort(), partitionId);
+            // c010 push data
             client.pushData(pushData, pushDataTimeout, wrappedCallback);
           } else {
             wrappedCallback.onFailure(
@@ -1530,6 +1538,7 @@ public class ShuffleClientImpl extends ShuffleClient {
         if (!testRetryRevive || remainReviveTimes < 1) {
           assert dataClientFactory != null;
           TransportClient client = dataClientFactory.createClient(host, port);
+          // c011 TODO 这里还可以推送 merged data
           client.pushMergedData(mergedData, pushDataTimeout, wrappedCallback);
         } else {
           wrappedCallback.onFailure(
