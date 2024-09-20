@@ -455,6 +455,7 @@ private[celeborn] class Master(
       // keep it for compatible reason
       context.reply(ReleaseSlotsResponse(StatusCode.SUCCESS))
 
+    // c0263: 处理 slot 请求
     case requestSlots @ RequestSlots(applicationId, _, _, _, _, _, _, _, _, _, _, _) =>
       logTrace(s"Received RequestSlots request $requestSlots.")
       checkAuth(context, applicationId)
@@ -845,6 +846,7 @@ private[celeborn] class Master(
         RequestSlotsResponse(StatusCode.WORKER_EXCLUDED, new WorkerResource(), requestSlots.packed))
     }
 
+    // numWorkers 为当前系统中可用的 worker 数量，最大为 10000个
     val numWorkers = Math.min(
       Math.max(
         if (requestSlots.shouldReplicate) 2 else 1,
@@ -852,6 +854,7 @@ private[celeborn] class Master(
         else Math.min(slotsAssignMaxWorkers, requestSlots.maxWorkers)),
       numAvailableWorkers)
     val startIndex = Random.nextInt(numAvailableWorkers)
+    // 从 availableWorkers 中随机选取 numWorkers 个 worker 作为分配 slots 的候选
     val selectedWorkers = new util.ArrayList[WorkerInfo](numWorkers)
     selectedWorkers.addAll(availableWorkers.subList(
       startIndex,

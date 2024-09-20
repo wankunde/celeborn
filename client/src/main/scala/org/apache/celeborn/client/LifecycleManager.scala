@@ -557,7 +557,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
       }
     }
 
-    // 1. 根据 shuffle Id 找到所有 Array[ShufflePartitionLocationInfo]
+    // c0261. 根据 shuffle Id 找到所有 Array[ShufflePartitionLocationInfo]
     def getInitialLocs(
         shuffleId: Int,
         partitionLocationFilter: PartitionLocation => Boolean): Array[PartitionLocation] = {
@@ -1637,7 +1637,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
     }
   }
 
-  // 向 masterClient 发 RequestSlots 请求
+  // c0262 向 masterClient 发 RequestSlots 请求
   private def requestMasterRequestSlots(message: RequestSlots): RequestSlotsResponse = {
     val shuffleKey = Utils.makeShuffleKey(message.applicationId, message.shuffleId)
     try {

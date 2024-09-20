@@ -65,6 +65,7 @@ public class SlotsAllocator {
     }
     Map<WorkerInfo, List<UsableDiskInfo>> slotsRestrictions = new HashMap<>();
     for (WorkerInfo worker : workers) {
+      // 这里重新对每个 worker 构建满足 request 的 usableDiskInfo 列表
       List<UsableDiskInfo> usableDisks =
           slotsRestrictions.computeIfAbsent(worker, v -> new ArrayList<>());
       for (Map.Entry<String, DiskInfo> diskInfoEntry : worker.diskInfos().entrySet()) {
@@ -327,10 +328,10 @@ public class SlotsAllocator {
   }
 
   private static List<Integer> roundRobin(
-      Map<WorkerInfo, Tuple2<List<PartitionLocation>, List<PartitionLocation>>> slots,
-      List<Integer> partitionIds,
-      List<WorkerInfo> workers,
-      Map<WorkerInfo, List<UsableDiskInfo>> slotsRestrictions,
+      Map<WorkerInfo, Tuple2<List<PartitionLocation>, List<PartitionLocation>>> slots, // Map()
+      List<Integer> partitionIds,                             // List[0]
+      List<WorkerInfo> workers,                               // List[w1, w2]
+      Map<WorkerInfo, List<UsableDiskInfo>> slotsRestrictions,// Map(w1 -> List<d1, d2>, w2 -> List<d1, d2>)
       boolean shouldReplicate,
       boolean shouldRackAware,
       int availableStorageTypes) {
