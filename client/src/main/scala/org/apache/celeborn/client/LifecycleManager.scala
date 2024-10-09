@@ -308,6 +308,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
       handleStageEnd(shuffleId)
   }
 
+  // c025: LifecycleManager 响应 RPC 请求
   override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
     case pb: PbRegisterShuffle =>
       val shuffleId = pb.getShuffleId
@@ -478,6 +479,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
     }
   }
 
+  // c026: 响应 RegisterShuffle RPC
   private def offerAndReserveSlots(
       context: RegisterCallContext,
       shuffleId: Int,
@@ -499,6 +501,8 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
           val rpcContext: RpcCallContext = context.context
           partitionType match {
             case PartitionType.MAP =>
+              // TODO 1. 只返回 map partitionId 要推送的locs，每个Map Task 独立请求一次，所以locs 可能是缓存，也可能是新生成的数据
+              // TODO 2 changePartitionManager 修改后，是否会造成前后之前的shuffle locs 被覆盖，所以需要保存 changePartition 之前的数据，给Reducer 使用
               processMapTaskReply(
                 shuffleId,
                 rpcContext,
@@ -536,6 +540,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
       }
     }
 
+    // 1. 根据 shuffle Id 找到所有 Array[ShufflePartitionLocationInfo]
     def getInitialLocs(
         shuffleId: Int,
         partitionLocationFilter: PartitionLocation => Boolean): Array[PartitionLocation] = {
@@ -622,6 +627,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
       }
     }
 
+    // 1. 假设有 3 个 Mappers, 10 个 Reducers, 每个 Mapper 分配 3 个 slots, 每个 Reducer 分配 1 个 slot
     // First, request to get allocated slots from Primary
     val ids = new util.ArrayList[Integer](numPartitions)
     (0 until numPartitions).foreach(idx => ids.add(Integer.valueOf(idx)))
@@ -1552,6 +1558,7 @@ class LifecycleManager(val appUniqueId: String, val conf: CelebornConf) extends 
     }
   }
 
+  // 向 masterClient 发 RequestSlots 请求
   private def requestMasterRequestSlots(message: RequestSlots): RequestSlotsResponse = {
     val shuffleKey = Utils.makeShuffleKey(message.applicationId, message.shuffleId)
     try {

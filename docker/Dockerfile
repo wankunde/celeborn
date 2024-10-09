@@ -36,13 +36,13 @@ RUN set -ex && \
     useradd  --uid=${celeborn_uid} --gid=${celeborn_gid} celeborn -d /home/celeborn -m && \
     mkdir -p ${CELEBORN_HOME}
 
-COPY bin /opt/celeborn/bin
-COPY sbin /opt/celeborn/sbin
-COPY conf /opt/celeborn/conf
-COPY jars /opt/celeborn/jars
-COPY master-jars /opt/celeborn/master-jars
-COPY worker-jars /opt/celeborn/worker-jars
-COPY RELEASE /opt/celeborn/RELEASE
+COPY dist/bin /opt/celeborn/bin
+COPY dist/sbin /opt/celeborn/sbin
+COPY dist/conf /opt/celeborn/conf
+COPY dist/jars /opt/celeborn/jars
+COPY dist/master-jars /opt/celeborn/master-jars
+COPY dist/worker-jars /opt/celeborn/worker-jars
+COPY dist/RELEASE /opt/celeborn/RELEASE
 
 RUN chown -R celeborn:celeborn ${CELEBORN_HOME} && \
     chmod -R ug+rw ${CELEBORN_HOME} && \

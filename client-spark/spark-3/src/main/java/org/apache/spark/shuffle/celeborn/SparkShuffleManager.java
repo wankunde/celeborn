@@ -128,6 +128,10 @@ public class SparkShuffleManager implements ShuffleManager {
     return _sortShuffleManager;
   }
 
+  // c022: lifecycleManager 的初始化
+  // 1. 在 Driver 端初始化 lifecycleManager
+  // 2. 在 ShuffleManager 构造方法中, 通过 Spark Conf 初始化 celebornConf
+  // 3. 在 ShuffleHandle registerShuffle() 中，调用 initializeLifecycleManager() 初始化 lifecycleManager
   private void initializeLifecycleManager() {
     // Only create LifecycleManager singleton in Driver. When register shuffle multiple times, we
     // need to ensure that LifecycleManager will only be created once. Parallelism needs to be
@@ -149,6 +153,11 @@ public class SparkShuffleManager implements ShuffleManager {
     }
   }
 
+
+  // c024: registerShuffle 返回 CelebornShuffleHandle，放到 Dependency 中，在 ShuffleManager 的 getWriter 和 getReader 方法中使用
+  // 所以这个是在 Driver 端创建好，在 Executor 端使用的
+  // 在 getWriter 方法中，根据 ShuffleClient 根据 handler 中的地址，创建 ShuffleClient
+  // 在 ShuffleClient 构造方法中初始化 lifecycleManagerRef，之后就可以通过 RPC 通信了
   @Override
   public <K, V, C> ShuffleHandle registerShuffle(
       int shuffleId, ShuffleDependency<K, V, C> dependency) {

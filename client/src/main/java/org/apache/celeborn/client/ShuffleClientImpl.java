@@ -513,6 +513,14 @@ public class ShuffleClientImpl extends ShuffleClient {
     }
   }
 
+  // c020: 获取 Shuffle PartitionLocation
+  // DataPusher 是一个独立的线程，不断的调用 ShuffleClient push shuffle 数据
+  // ShuffleClientImpl.java 在推送数据之前，先获取 PartitionLocation
+  // public int pushOrMergeData()
+  // ConcurrentHashMap<Integer, PartitionLocation> map = ...
+  // ConcurrentHashMap<Integer, PartitionLocation> getPartitionLocation()
+  // ConcurrentHashMap<Integer, PartitionLocation> registerShuffle()
+  // lifecycleManagerRef.askSync(RegisterShuffle$.MODULE$.apply(shuffleId, numMappers, numPartitions) ...)
   private ConcurrentHashMap<Integer, PartitionLocation> registerShuffle(
       int shuffleId, int numMappers, int numPartitions) throws CelebornIOException {
     return registerShuffleInternal(
@@ -1791,6 +1799,7 @@ public class ShuffleClientImpl extends ShuffleClient {
     logger.warn("Shuffle client has been shutdown!");
   }
 
+  // c021: lifecycleManagerRef 在 ShuffleClient 中初始化，获取 ManagerRef RPC 地址， Ref c024
   @Override
   public void setupLifecycleManagerRef(String host, int port) {
     logger.info("setupLifecycleManagerRef: host = {}, port = {}", host, port);

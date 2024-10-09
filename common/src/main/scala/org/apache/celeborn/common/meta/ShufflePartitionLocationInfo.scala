@@ -25,6 +25,19 @@ import scala.collection.mutable.ArrayBuffer
 
 import org.apache.celeborn.common.protocol.PartitionLocation
 
+/**
+ * ShufflePartitionLocationInfo 结构
+ * Primary:
+ *   0: [Loc0, Loc1]
+ *   1: [Loc2, Loc3]
+ *   2: [Loc4, Loc5]
+ * Replica:
+ *   0: [Loc6]
+ *   1: [Loc7]
+ *   2: [Loc8]
+ *
+ * Loc PartitionLocation 结构:
+ */
 class ShufflePartitionLocationInfo {
   type PartitionInfo = ConcurrentHashMap[Int, util.Set[PartitionLocation]]
 
@@ -89,6 +102,7 @@ class ShufflePartitionLocationInfo {
     }
   }
 
+  // 遍历所有 primaryPartition， 在 primaryPartition 中找到 epoch 最小的 PartitionLocation
   def getAllPrimaryLocationsWithMinEpoch(): ArrayBuffer[PartitionLocation] = {
     val set = new ArrayBuffer[PartitionLocation](primaryPartitionLocations.size())
     val locationsIterator = primaryPartitionLocations.values().iterator()
